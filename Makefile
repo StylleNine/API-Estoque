@@ -4,5 +4,5 @@ test:
 	@flake8 . --exclude .venv
 
 compose:
-	@podman-compose build
-	@podman-compose up
+	@docker-compose build
+	@docker-compose up
