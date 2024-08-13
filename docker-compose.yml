@@ -20,4 +20,4 @@ services:
     depends_on:
       - mongodb
     volumes:
-      - .:/app:z  # Tag :z para funcionar no fedora40
+      - ./application:/app/application:z  # Tag :z para funcionar no fedora40
