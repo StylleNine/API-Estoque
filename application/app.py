@@ -1,8 +1,9 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_restful import Resource, Api, reqparse
-from flask_mongoengine import MongoEngine
 from mongoengine import NotUniqueError
+from .model import UserModel
 import re
+
 
 app = Flask(__name__)
 
@@ -44,20 +45,11 @@ _user_parser.add_argument('birth_date',
 
 
 api = Api(app)
-db = MongoEngine(app)
-
-
-class UserModel(db.Document):
-    cpf = db.StringField(required=True, unique=True)
-    email = db.StringField(required=True)
-    first_name = db.StringField(required=True)
-    last_name = db.StringField(required=True)
-    birth_date = db.DateTimeField(required=True)
 
 
 class Users(Resource):
     def get(self):
-        return {'message': 'user 1'}
+        return jsonify(UserModel.objects())
 
 
 class User(Resource):
@@ -93,18 +85,19 @@ class User(Resource):
 
     def post(self):
         data = _user_parser.parse_args()
-        
         if not self.validate_cpf(data["cpf"]):
             return {"message": "CPF is invalid!"}, 400
-        
         try:
-            response = UserModel(**data).save()                 
-            return {"message":"User %s successfully created" % response.id}
+            response = UserModel(**data).save()
+            return {"message": "User %s successfully created" % response.id}
         except NotUniqueError:
-            return{"message": "CPF already exist in database"}, 400
+            return {"message": "CPF already exist in database"}, 400
 
     def get(self, cpf):
-        return {'message': 'CPF'}
+        response = UserModel.objects(cpf=cpf)
+        if response:
+            return jsonify(response)
+        return {"message": "User does not exist in database"}, 400
 
 
 api.add_resource(Users, '/users')
